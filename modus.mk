@@ -1,4 +1,5 @@
 # This is a file used and owned by the ModusToolbox IDE. Users should not modify this file.
+CY_MIDDLEWARE_SELECTOR_TOUCHED=true
 FEATURE_VALUES=BT_DEVICE_ADDRESS,default UART,AUTO ENABLE_DEBUG,0 POWER_ESTIMATOR,no MESH_MODELS_DEBUG_TRACES,off MESH_CORE_DEBUG_TRACES,off MESH_PROVISIONER_DEBUG_TRACES,off REMOTE_PROVISION_SRV,0 LOW_POWER_NODE,0 
 DEVICE=CYBT-213043-02
 #
@@ -74,12 +75,15 @@ OTA_FW_UPGRADE = 1
 
 # NOTE: This variable cannot be renamed or moved to a different file. It is updated by the ModusToolbox
 # middleware editor.
-CY_MAINAPP_SWCOMP_USED =  \
-  $(CY_WICED_LIB_COMP_BASE)/BT-SDK/common/libraries/fw_upgrade_lib
+CY_MAINAPP_SWCOMP_USED= \
+    bt_sdk-1.1/components/BT-SDK/common/libraries/ambient_light_sensor_lib \
+    bt_sdk-1.1/components/BT-SDK/common/libraries/thermistor_ncp15xv103_lib \
+    bt_sdk-1.1/components/BT-SDK/common/libraries/fw_upgrade_lib
 
 # NOTE: This variable cannot be renamed or moved to a different file. It is updated by the ModusToolbox
 # middleware editor.
-CY_MAINAPP_SWCOMP_EXT =
+CY_MAINAPP_SWCOMP_EXT= \
+    
 
 CY_APP_DEFINES =  \
   -DWICED_BT_TRACE_ENABLE \

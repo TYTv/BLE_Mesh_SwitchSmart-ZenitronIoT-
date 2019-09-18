@@ -59,6 +59,7 @@
 static void process_button_push(uint8_t element_idx);
 static void mesh_onoff_client_message_handler(uint16_t event, wiced_bt_mesh_event_t *p_event, void *p_data);
 static void button_interrupt_handler(void* user_data, uint8_t pin);
+void chang_sensor_mode(void);
 
 /******************************************************
  *          Variables Definitions
@@ -122,6 +123,15 @@ void button_interrupt_handler(void* user_data, uint8_t pin)
     button_previous_value = value;
 
     WICED_BT_TRACE("interrupt_handler: pin:%d value:%d current_time:%d\n", pin, value, current_time);
+
+
+
+    if( value == 0 ){
+    	chang_sensor_mode();
+    }
+
+
+
 
     if (value == platform_button[WICED_PLATFORM_BUTTON_1].button_pressed_value)
     {

@@ -4,10 +4,13 @@
   <File wkspFile="libraries\fw_upgrade_lib\sha256.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\sha256.h" checksum="EC67AA01CC8AAD81B946E594A68043EB1C46AEC2"/>
   <File wkspFile="208XX_readme.txt" installFile="bt_sdk-1.1\components\BT-SDK\208XX-A1_Bluetooth\platforms\208XX_readme.txt" checksum="2822AD84D90660BEEAAE9A3F4B995FB77D221F8E"/>
   <File wkspFile="libraries\fw_upgrade_lib\ota_fw_upgrade.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\ota_fw_upgrade.c" checksum="69A2CB34D711F399387072F32060B92E812997F7"/>
+  <File wkspFile="libraries\thermistor_ncp15xv103_lib\thermistor_ncp15xv103.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\thermistor_ncp15xv103_lib\thermistor_ncp15xv103.c" checksum="1FFEE578CBA944008D29F42C0144B71314C3F572"/>
   <File wkspFile=".\readme.txt" installFile=".\readme.txt" checksum="7169BF2DCEEED34170D56E54D1BDA905EA9306C0"/>
   <File wkspFile="libraries\fw_upgrade_lib\ota_fw_upgrade.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\ota_fw_upgrade.h" checksum="93FDC972B3637A0A3CC68A797E2FB885B6F53E18"/>
+  <File wkspFile="libraries\ambient_light_sensor_lib\max_44009.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\ambient_light_sensor_lib\max_44009.c" checksum="E1EC8F6D1F4BFA762F6BFB30AC9AEF3FCAA42DD6"/>
   <File wkspFile="libraries\mesh_app_lib\mesh_app_hci.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\mesh_app_lib\mesh_app_hci.c" checksum="5091AD7171B0CEDD11585DD4007B71C41E3D703B"/>
   <File wkspFile=".\on_off_switch.c" installFile=".\on_off_switch.c" checksum="4944C443C92AFD36D3D77C4F38E8053FDA428EB3"/>
+  <File wkspFile="libraries\ambient_light_sensor_lib\max_44009.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\ambient_light_sensor_lib\max_44009.h" checksum="49F5B3BFB878FB66A45615156DA249349AF1D6AD"/>
   <File wkspFile="libraries\pir_motion_sensor_lib\e93196_drv.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\pir_motion_sensor_lib\e93196_drv.c" checksum="5118E10691232B1CFF8408875C629531160AC72A"/>
   <File wkspFile="libraries\fw_upgrade_lib\fw_update_copy_sflash.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\fw_update_copy_sflash.c" checksum="205945C6CFDB5756C422BDC787E1A686D5BB65A2"/>
   <File wkspFile="libraries\fw_upgrade_lib\p_256_multprecision.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\p_256_multprecision.h" checksum="30B33ADCB7239D03EF20C6A1D0C86E7B27D278F8"/>

@@ -70,6 +70,7 @@
 #include "e93196.h"
 #include "wiced_sleep.h"
 #include "wiced_bt_cfg.h"
+#include "led_control.h"
 extern wiced_bt_cfg_settings_t wiced_bt_cfg_settings;
 
 /******************************************************
@@ -92,6 +93,16 @@ extern wiced_bt_cfg_settings_t wiced_bt_cfg_settings;
 #define MESH_MOTION_SENSOR_UPDATE_INTERVAL              WICED_BT_MESH_SENSOR_VAL_UNKNOWN
 
 #define MESH_MOTION_SENSOR_CADENCE_VSID_START           WICED_NVRAM_VSID_START
+
+
+// The onboard thermistor hardware has a positive and negative tolerance of 1%
+#define MESH_TEMPERATURE_SENSOR_POSITIVE_TOLERANCE      CONVERT_TOLERANCE_PERCENTAGE_TO_MESH(1)
+#define MESH_TEMPERATURE_SENSOR_NEGATIVE_TOLERANCE      CONVERT_TOLERANCE_PERCENTAGE_TO_MESH(1)
+
+#define MESH_TEMPERATURE_SENSOR_SAMPLING_FUNCTION       WICED_BT_MESH_SENSOR_SAMPLING_FUNCTION_UNKNOWN
+#define MESH_TEMPERATURE_SENSOR_MEASUREMENT_PERIOD      WICED_BT_MESH_SENSOR_VAL_UNKNOWN
+#define MESH_TEMPERATURE_SENSOR_UPDATE_INTERVAL         WICED_BT_MESH_SENSOR_VAL_UNKNOWN
+
 
 // After presence is detected, interrupts are disabled for 5 seconds
 #define MESH_PRESENCE_DETECTED_BLIND_TIME               7
@@ -135,6 +146,7 @@ static void         mesh_sensor_server_process_setting_changed(uint8_t element_i
 static void         mesh_sensor_publish_timer_callback(TIMER_PARAM_TYPE arg);
 static void         e93196_int_proc(void *data, uint8_t port_pin);
 static void         mesh_sensor_presence_detected_timer_callback(TIMER_PARAM_TYPE arg);
+static void         timer_ms_callback(TIMER_PARAM_TYPE arg);
 static int32_t      mesh_sensor_get_current_value(void);
 static void         mesh_onoff_client_message_handler(uint16_t event, wiced_bt_mesh_event_t *p_event, void *p_data);
 static void         button_interrupt_handler(void* user_data, uint8_t pin);
@@ -157,7 +169,22 @@ uint8_t mesh_model_num[WICED_BT_MESH_PROPERTY_LEN_DEVICE_MODEL_NUMBER]          
 uint8_t mesh_prop_fw_version[WICED_BT_MESH_PROPERTY_LEN_DEVICE_FIRMWARE_REVISION] =   { '0', '6', '.', '0', '2', '.', '0', '5' }; // this is overwritten during init
 uint8_t mesh_system_id[8]                                                           = { 0xbb, 0xb8, 0xa1, 0x80, 0x5f, 0x9f, 0x91, 0x71 };
 
-int32_t       mesh_sensor_sent_value = 0;          //
+enum{
+	TEMP = 0b001,
+	AMB = 0b010,
+	PIR = 0b100,
+	ALL = 0b111,
+}sensor_num;
+uint8_t SENSOR_MODE = ALL;
+
+int16_t sensor_temp;
+int32_t sensor_amb;
+uint8_t sensor_pir;
+int8_t mesh_sensor_sent_value_pir = 0;
+int8_t mesh_sensor_sent_value_temp = 0;
+int8_t mesh_sensor_sent_value_amb = 0;
+//int32_t       mesh_sensor_sent_value = 0;          //
+#define		  mesh_sensor_sent_value		mesh_sensor_sent_value_pir
 int32_t       mesh_sensor_current_value = 0;
 uint32_t      mesh_sensor_sent_time;               // time stamp when data was published
 uint32_t      mesh_sensor_publish_period = 0;      // publish "no presence" every ~5 minutes, with fast cadence 32. This is reset to 0 after provisioning.  Set here for testing.
@@ -165,6 +192,7 @@ uint32_t      mesh_sensor_publish_period = 0;      // publish "no presence" ever
 uint32_t      mesh_sensor_fast_publish_period = 0; // publish period in msec when values are outside of limit
 wiced_timer_t mesh_sensor_cadence_timer;
 wiced_timer_t mesh_sensor_presence_detected_timer;
+wiced_timer_t timer_ms;
 wiced_bool_t  presence_detected = WICED_FALSE;
 
 // We define optional setting for the motion sensor, the Motion Threshold. Default is 80%.
@@ -181,11 +209,35 @@ wiced_bt_mesh_core_config_model_t mesh_element1_models[] =
 };
 #define MESH_APP_NUM_MODELS  (sizeof(mesh_element1_models) / sizeof(wiced_bt_mesh_core_config_model_t))
 
+// Optional setting for the temperature sensor, the Total Device Runtime, in Time Hour 24 format
+uint8_t mesh_temperature_sensor_setting0_val[] = { 0x01, 0x00, 0x00 };
+wiced_bt_mesh_sensor_config_setting_t sensor_settings[] =
+{
+    {
+        .setting_property_id = WICED_BT_MESH_PROPERTY_TOTAL_DEVICE_RUNTIME,
+        .access              = WICED_BT_MESH_SENSOR_SETTING_READABLE_AND_WRITABLE,
+        .value_len           = WICED_BT_MESH_PROPERTY_LEN_TOTAL_DEVICE_RUNTIME,
+        .val                 = mesh_temperature_sensor_setting0_val
+    },
+};
+
+// The Red Sensor defines
+#define MESH_RED_SENSOR_POSITIVE_TOLERANCE        	   	WICED_BT_MESH_SENSOR_TOLERANCE_UNSPECIFIED
+#define MESH_RED_SENSOR_NEGATIVE_TOLERANCE          	WICED_BT_MESH_SENSOR_TOLERANCE_UNSPECIFIED
+
+#define MESH_RED_SENSOR_SAMPLING_FUNCTION            	WICED_BT_MESH_SENSOR_SAMPLING_FUNCTION_UNKNOWN
+#define MESH_RED_SENSOR_MEASUREMENT_PERIOD           	WICED_BT_MESH_SENSOR_VAL_UNKNOWN
+#define MESH_RED_SENSOR_UPDATE_INTERVAL              	WICED_BT_MESH_SENSOR_VAL_UNKNOWN
+
+#define MESH_RED_SENSOR_CADENCE_VSID	          		WICED_NVRAM_VSID_START + 0x100
+
 wiced_bt_mesh_core_config_sensor_t mesh_element1_sensors[] =
 {
     {
-        .property_id    = MESH_SENSOR_PROPERTY_ID,
-        .prop_value_len = MESH_SENSOR_VALUE_LEN,
+//        .property_id    = MESH_SENSOR_PROPERTY_ID,
+//        .prop_value_len = MESH_SENSOR_VALUE_LEN,
+        .property_id    = WICED_BT_MESH_PROPERTY_PRESENCE_DETECTED,
+        .prop_value_len = WICED_BT_MESH_PROPERTY_LEN_PRESENCE_DETECTED,
         .descriptor =
         {
             .positive_tolerance = MESH_MOTION_SENSOR_POSITIVE_TOLERANCE,
@@ -194,11 +246,70 @@ wiced_bt_mesh_core_config_sensor_t mesh_element1_sensors[] =
             .measurement_period = MESH_MOTION_SENSOR_MEASUREMENT_PERIOD,
             .update_interval    = MESH_MOTION_SENSOR_UPDATE_INTERVAL,
         },
-        .data = (uint8_t*)&mesh_sensor_sent_value,
+//        .data = (uint8_t*)&mesh_sensor_sent_value,
+        .data = (uint8_t*)&mesh_sensor_sent_value_pir,
         .cadence =
         {
             // Value 0 indicates that cadence does not change depending on the measurements
             .fast_cadence_period_divisor = 32,          // Recommended publish period is 320sec, 32 will make fast period 10sec
+            .trigger_type_percentage     = WICED_FALSE, // The Property is Bool, does not make sense to use percentage
+            .trigger_delta_down          = 0,           // This will not cause message when presence changes from 1 to 0
+            .trigger_delta_up            = 1,           // This will cause immediate message when presence changes from 0 to 1
+            .min_interval                = (1 << 10),   // Milliseconds. Conversion to SPEC values is done by the mesh models library
+            .fast_cadence_low            = 1,           // If fast_cadence_low is greater than fast_cadence_high and the measured value is either is lower
+                                                        // than fast_cadence_high or higher than fast_cadence_low, then the message shall be published
+                                                        // with publish period (equals to mesh_sensor_publish_period divided by fast_cadence_divisor_period)
+            .fast_cadence_high           = 0,           // is more or equal cadence_low or less then cadence_high. This is what we need.
+        },
+        .num_series     = 0,
+        .series_columns = NULL,
+        .num_settings   = 0,
+        .settings       = NULL,
+    },
+	{
+	    .property_id = WICED_BT_MESH_PROPERTY_PRESENT_AMBIENT_TEMPERATURE,
+		.prop_value_len = WICED_BT_MESH_PROPERTY_LEN_PRESENT_AMBIENT_TEMPERATURE,
+        .descriptor =
+        {
+            .positive_tolerance = MESH_TEMPERATURE_SENSOR_POSITIVE_TOLERANCE,
+            .negative_tolerance = MESH_TEMPERATURE_SENSOR_NEGATIVE_TOLERANCE,
+            .sampling_function  = MESH_TEMPERATURE_SENSOR_SAMPLING_FUNCTION,
+            .measurement_period = MESH_TEMPERATURE_SENSOR_MEASUREMENT_PERIOD,
+            .update_interval    = MESH_TEMPERATURE_SENSOR_UPDATE_INTERVAL,
+        },
+        .data = (uint8_t*)&mesh_sensor_sent_value_temp,
+        .cadence =
+        {
+            // Value 1 indicates that cadence does not change depending on the measurements
+            .fast_cadence_period_divisor = 1,
+            .trigger_type_percentage     = WICED_FALSE,
+            .trigger_delta_down          = 0,
+            .trigger_delta_up            = 0,
+            .min_interval                = (1 << 12), // minimum interval for sending data by default is 4 seconds
+            .fast_cadence_low            = 0,
+            .fast_cadence_high           = 0,
+        },
+        .num_series     = 0,
+        .series_columns = NULL,
+        .num_settings   = 1,
+        .settings       = sensor_settings,
+    },
+    {
+        .property_id    = WICED_BT_MESH_PROPERTY_PRESENT_AMBIENT_LIGHT_LEVEL,
+        .prop_value_len = WICED_BT_MESH_PROPERTY_LEN_PRESENT_AMBIENT_LIGHT_LEVEL,
+        .descriptor =
+        {
+            .positive_tolerance = MESH_RED_SENSOR_POSITIVE_TOLERANCE,
+            .negative_tolerance = MESH_RED_SENSOR_NEGATIVE_TOLERANCE,
+            .sampling_function  = MESH_RED_SENSOR_SAMPLING_FUNCTION,
+            .measurement_period = MESH_RED_SENSOR_MEASUREMENT_PERIOD,
+            .update_interval    = MESH_RED_SENSOR_UPDATE_INTERVAL,
+        },
+        .data = (uint8_t*)&mesh_sensor_sent_value_amb,
+        .cadence =
+        {
+            // Value 0 indicates that cadence does not change depending on the measurements
+            .fast_cadence_period_divisor = 64,          // Recommended publish period is 320sec, 64 will make fast period 5sec
             .trigger_type_percentage     = WICED_FALSE, // The Property is Bool, does not make sense to use percentage
             .trigger_delta_down          = 0,           // This will not cause message when presence changes from 1 to 0
             .trigger_delta_up            = 1,           // This will cause immediate message when presence changes from 0 to 1
@@ -234,7 +345,9 @@ wiced_bt_mesh_core_config_element_t mesh_elements[] =
         .move_rollover = 0,                                              // If true when level gets to range_max during move operation, it switches to min, otherwise move stops.
         .properties_num = 0,                                             // Number of properties in the array models
         .properties = NULL,                                              // Array of properties in the element.
-        .sensors_num = 1,                                                // Number of properties in the array models
+//        .sensors_num = 1,                                                // Number of properties in the array models
+        .sensors_num = 2,                                                // Number of properties in the array models
+//        .sensors_num = 3,                                                // Number of properties in the array models
         .sensors = mesh_element1_sensors,                                // Array of properties in the element.
         .models_num = MESH_APP_NUM_MODELS,                               // Number of models in the array models
         .models = mesh_element1_models,                                  // Array of models located in that element. Model data is defined by structure wiced_bt_mesh_core_config_model_t
@@ -328,7 +441,8 @@ void mesh_app_init(wiced_bool_t is_provisioned)
 #if defined(LOW_POWER_NODE) && (LOW_POWER_NODE == 1)
     wiced_bt_cfg_settings.device_name = (uint8_t *)"Smart switch LPN";
 #else
-    wiced_bt_cfg_settings.device_name = (uint8_t *)"Smart switch";
+//    wiced_bt_cfg_settings.device_name = (uint8_t *)"Smart switch";
+    wiced_bt_cfg_settings.device_name = (uint8_t *)"Zenitron IoT";
 #endif
     wiced_bt_cfg_settings.gatt_cfg.appearance = APPEARANCE_SENSOR_MOTION;
 
@@ -393,6 +507,100 @@ void mesh_app_init(wiced_bool_t is_provisioned)
     wiced_hal_read_nvram( MESH_MOTION_SENSOR_CADENCE_VSID_START, sizeof(wiced_bt_mesh_sensor_config_cadence_t), (uint8_t*)(&p_sensor->cadence), &result);
 
     wiced_bt_mesh_model_sensor_server_init(MESH_SENSOR_SERVER_ELEMENT_INDEX, mesh_sensor_server_report_handler, mesh_sensor_server_config_change_handler, is_provisioned);
+
+
+
+    thermistor_init();
+    max44009_init();
+    led_control_init(LED_CONTROL_TYPE_LEVEL);
+    
+    wiced_init_timer(&timer_ms, timer_ms_callback, 0, WICED_MILLI_SECONDS_PERIODIC_TIMER);
+    wiced_start_timer(&timer_ms, 100);
+
+
+
+
+
+
+}
+
+
+
+void chang_sensor_mode(void)
+{
+	if( SENSOR_MODE == TEMP ){
+		SENSOR_MODE = AMB;
+	}else if( SENSOR_MODE == AMB ){
+		SENSOR_MODE = PIR;
+	}else if( SENSOR_MODE == PIR ){
+		SENSOR_MODE = ALL;
+	}else{
+		SENSOR_MODE = TEMP;
+	}
+}
+
+/*
+ * Helper function to read temperature from the thermistor and convert temperature in celsius
+ * to Temperature 8 format.  Unit is degree Celsius with a resolution of 0.5. Minimum: -64.0 Maximum: 63.5.
+ */
+int8_t mesh_sensor_get_temperature_8(void)
+{
+    int16_t temp_celsius_100 = thermistor_read();
+
+    if (temp_celsius_100 < -6400)
+    {
+        return 0x80;
+    }
+    else if (temp_celsius_100 >= 6350)
+    {
+        return 0x7F;
+    }
+    else
+    {
+        return (int8_t)(temp_celsius_100 / 50);
+    }
+}
+
+void timer_ms_callback(TIMER_PARAM_TYPE arg)
+{
+
+	int16_t pwm_temp = 0;
+	uint32_t pwm_amb = 0;
+	uint8_t pwm_pir = 0;
+
+	if( SENSOR_MODE & TEMP ){
+		sensor_temp = mesh_sensor_get_temperature_8();
+		pwm_temp = thermistor_read();
+		pwm_temp -= 2650;
+		pwm_temp /= 4;
+		if( pwm_temp > 100 ){
+			pwm_temp = 100;
+		}else if( pwm_temp < 0 ){
+			pwm_temp = 0;
+		}
+	}
+	if( SENSOR_MODE & AMB ){
+		pwm_amb = max44009_read_ambient_light();
+		sensor_amb = (uint32_t)((float)pwm_amb/10000);
+		pwm_amb /= 800;
+		if( 100 >= pwm_amb ){
+			pwm_amb = 100 - pwm_amb;
+		}else{
+			pwm_amb = 0;
+		}
+
+//        if( ((int32_t)(sensor_amb/5000)) >= 127 ){
+//			sensor_amb = 127;
+//		}else{
+//			sensor_amb = sensor_amb/5000;
+//		}
+//        sensor_amb = -800;
+	}
+	if( SENSOR_MODE & PIR ){
+		pwm_pir = mesh_sensor_current_value;
+		pwm_pir *= 100;
+	}
+	led_control_set_brighness_level( pwm_temp, pwm_amb, pwm_pir );
 }
 
 void mesh_app_hardware_init(void)
@@ -495,16 +703,21 @@ void mesh_sensor_server_config_change_handler(uint8_t element_idx, uint16_t even
 /*
  * Process get request from Sensor Client and respond with sensor data
  */
+uint16_t app_property_id = WICED_BT_MESH_PROPERTY_PRESENCE_DETECTED;
 void mesh_sensor_server_report_handler(uint16_t event, uint8_t element_idx, void *p_get, void *p_ref_data)
 {
     wiced_bt_mesh_sensor_get_t *p_sensor_get = (wiced_bt_mesh_sensor_get_t *)p_get;
+    app_property_id = p_sensor_get->property_id;	// update app select
     WICED_BT_TRACE("mesh_sensor_server_report_handler msg: %d\n", event);
 
     switch (event)
     {
     case WICED_BT_MESH_SENSOR_GET:
         // tell mesh models library that data is ready to be shipped out, the library will get data from mesh_config
-        mesh_sensor_sent_value = presence_detected;
+//        mesh_sensor_sent_value = presence_detected;
+        mesh_sensor_sent_value_pir = presence_detected;
+        mesh_sensor_sent_value_temp = sensor_temp;
+        mesh_sensor_sent_value_amb = sensor_amb;
         wiced_bt_mesh_model_sensor_server_data(element_idx, p_sensor_get->property_id, p_ref_data);
         break;
 
@@ -581,6 +794,10 @@ void mesh_sensor_publish_timer_callback(TIMER_PARAM_TYPE arg)
                 WICED_BT_TRACE("Native cur value:%d sent:%d delta:%d/%d\n",
                         mesh_sensor_current_value, mesh_sensor_sent_value, p_sensor->cadence.trigger_delta_up, p_sensor->cadence.trigger_delta_down);
 
+
+//wiced_hal_gpio_set_pin_output(WICED_P03,!mesh_sensor_current_value);
+
+
                 if (((p_sensor->cadence.trigger_delta_up != 0)   && (mesh_sensor_current_value >= (mesh_sensor_sent_value + p_sensor->cadence.trigger_delta_up)))
                  || ((p_sensor->cadence.trigger_delta_down != 0) && (mesh_sensor_current_value <= (mesh_sensor_sent_value - p_sensor->cadence.trigger_delta_down))))
                 {
@@ -650,11 +867,16 @@ void mesh_sensor_publish_timer_callback(TIMER_PARAM_TYPE arg)
         }
         if (pub_needed)
         {
+
+            mesh_sensor_sent_value_temp = sensor_temp;
+            mesh_sensor_sent_value_amb = sensor_amb;
+
             mesh_sensor_sent_value  = mesh_sensor_current_value;
             mesh_sensor_sent_time   = cur_time;
 
             WICED_BT_TRACE("*** Pub value:%d time:%d\n", mesh_sensor_sent_value, mesh_sensor_sent_time);
-            wiced_bt_mesh_model_sensor_server_data(MESH_SENSOR_SERVER_ELEMENT_INDEX, MESH_SENSOR_PROPERTY_ID, NULL);
+//            wiced_bt_mesh_model_sensor_server_data(MESH_SENSOR_SERVER_ELEMENT_INDEX, MESH_SENSOR_PROPERTY_ID, NULL);
+            wiced_bt_mesh_model_sensor_server_data(MESH_SENSOR_SERVER_ELEMENT_INDEX, app_property_id, NULL);
         }
     }
     mesh_sensor_server_restart_timer(p_sensor);
