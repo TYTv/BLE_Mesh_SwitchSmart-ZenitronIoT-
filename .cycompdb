@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component_data>
+  <File wkspFile="libraries\fw_upgrade_lib\sha256.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\sha256.c" checksum="48E74653FE5031CED33F8EAF98FB004669D7DB6F"/>
+  <File wkspFile="libraries\fw_upgrade_lib\sha256.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\sha256.h" checksum="EC67AA01CC8AAD81B946E594A68043EB1C46AEC2"/>
+  <File wkspFile="208XX_readme.txt" installFile="bt_sdk-1.1\components\BT-SDK\208XX-A1_Bluetooth\platforms\208XX_readme.txt" checksum="2822AD84D90660BEEAAE9A3F4B995FB77D221F8E"/>
+  <File wkspFile="libraries\fw_upgrade_lib\ota_fw_upgrade.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\ota_fw_upgrade.c" checksum="69A2CB34D711F399387072F32060B92E812997F7"/>
+  <File wkspFile=".\readme.txt" installFile=".\readme.txt" checksum="7169BF2DCEEED34170D56E54D1BDA905EA9306C0"/>
+  <File wkspFile="libraries\fw_upgrade_lib\ota_fw_upgrade.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\ota_fw_upgrade.h" checksum="93FDC972B3637A0A3CC68A797E2FB885B6F53E18"/>
+  <File wkspFile="libraries\mesh_app_lib\mesh_app_hci.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\mesh_app_lib\mesh_app_hci.c" checksum="5091AD7171B0CEDD11585DD4007B71C41E3D703B"/>
+  <File wkspFile=".\on_off_switch.c" installFile=".\on_off_switch.c" checksum="4944C443C92AFD36D3D77C4F38E8053FDA428EB3"/>
+  <File wkspFile="libraries\pir_motion_sensor_lib\e93196_drv.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\pir_motion_sensor_lib\e93196_drv.c" checksum="5118E10691232B1CFF8408875C629531160AC72A"/>
+  <File wkspFile="libraries\fw_upgrade_lib\fw_update_copy_sflash.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\fw_update_copy_sflash.c" checksum="205945C6CFDB5756C422BDC787E1A686D5BB65A2"/>
+  <File wkspFile="libraries\fw_upgrade_lib\p_256_multprecision.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\p_256_multprecision.h" checksum="30B33ADCB7239D03EF20C6A1D0C86E7B27D278F8"/>
+  <File wkspFile="libraries\pir_motion_sensor_lib\e93196_drv.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\pir_motion_sensor_lib\e93196_drv.h" checksum="8F50612CA8EDB46BB06DD3D3D4FDE14ED52C3248"/>
+  <File wkspFile=".\switch_smart.c" installFile=".\switch_smart.c" checksum="F0F3402F2BDDD64B44651BDF8E0E14697DEC3CB9"/>
+  <File wkspFile="wiced_platform.h" installFile="bt_sdk-1.1\components\BT-SDK\208XX-A1_Bluetooth\platforms\CYBT_213043_MESH\wiced_platform.h" checksum="3E8069B54E2CC430C5A5C7537B68673A993F8948"/>
+  <File wkspFile="libraries\mesh_app_lib\wiced_bt_cfg.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\mesh_app_lib\wiced_bt_cfg.c" checksum="619F8123B7A9D858C23CA4FFD2323606825C078F"/>
+  <File wkspFile="wiced_platform.c" installFile="bt_sdk-1.1\components\BT-SDK\208XX-A1_Bluetooth\platforms\wiced_platform.c" checksum="D763531546398DBD49BEA02707C9723D58564A78"/>
+  <File wkspFile="libraries\fw_upgrade_lib\multprecision.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\multprecision.h" checksum="ACE0F1AFF3597F6B89EC066710C44350AD399BE5"/>
+  <File wkspFile="libraries\mesh_app_lib\mesh_app_provision_server.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\mesh_app_lib\mesh_app_provision_server.c" checksum="57A259EAECC4DE867ABB726CB6CD7D83C11F0FCE"/>
+  <File wkspFile="libraries\fw_upgrade_lib\fw_upgrade.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\208XX-A1\fw_upgrade.c" checksum="3C8D310A5813EC8A231559187DC1ED350C7AC89F"/>
+  <File wkspFile="design.modus" installFile="bt_sdk-1.1\components\BT-SDK\208XX-A1_Bluetooth\platforms\CYBT_213043_MESH\design.modus" checksum="42E7028CC67FE4276F2AD72C4333E23ED4BF5BD4"/>
+  <File wkspFile="libraries\pir_motion_sensor_lib\e93196.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\pir_motion_sensor_lib\e93196.h" checksum="B70DD13B8D45815F2740CB31C3575248FEC1E382"/>
+  <File wkspFile="libraries\mesh_app_lib\mesh_application.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\mesh_app_lib\mesh_application.c" checksum="6C33DB52AAAC3A9D1700F0DAF30D96F7B54F3C51"/>
+  <File wkspFile="libraries\fw_upgrade_lib\ecc_pp.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\ecc_pp.c" checksum="F77341A1D7C8CBB1EF0A7B2FE5FA792D83FF8AF2"/>
+  <File wkspFile="libraries\pir_motion_sensor_lib\e93196.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\pir_motion_sensor_lib\e93196.c" checksum="FF6D583D28DCCC55A57ADD4A0E01DADE46C53A7E"/>
+  <File wkspFile="libraries\fw_upgrade_lib\p_256_ecc_pp.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\p_256_ecc_pp.h" checksum="FC8DD51A6007B8F152DC1B5A5A912F061CCADE5D"/>
+  <File wkspFile="libraries\fw_upgrade_lib\ota_fw_upgrade_common.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\ota_fw_upgrade_common.c" checksum="49C8D3C0A7093AC16518C1C4BC9DED60483D7988"/>
+  <File wkspFile="libraries\fw_upgrade_lib\p_256_types.h" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\fw_upgrade_lib\p_256_types.h" checksum="A8A1FCDBB1CC0C4E187FA4121B74240369D1CC84"/>
+  <File wkspFile="libraries\mesh_app_lib\mesh_app_gatt.c" installFile="bt_sdk-1.1\components\BT-SDK\common\libraries\mesh_app_lib\mesh_app_gatt.c" checksum="5DA833CFEF95FADF268DD25F15EC296F315C7E70"/>
+  <artifact name="mainapp"/>
+</component_data>
